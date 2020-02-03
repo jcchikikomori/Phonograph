@@ -7,7 +7,9 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+
+import android.provider.MediaStore;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -87,7 +89,7 @@ public class CustomArtistImageUtil {
                                 if (succesful) {
                                     mPreferences.edit().putBoolean(getFileName(artist), true).commit();
                                     ArtistSignatureUtil.getInstance(App.getInstance()).updateArtistSignature(artist.getName());
-                                    App.getInstance().getContentResolver().notifyChange(Uri.parse("content://media"), null); // trigger media store changed to force artist image reload
+                                    App.getInstance().getContentResolver().notifyChange(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, null); // trigger media store changed to force artist image reload
                                 }
                                 return null;
                             }
@@ -103,7 +105,7 @@ public class CustomArtistImageUtil {
             protected Void doInBackground(Void... params) {
                 mPreferences.edit().putBoolean(getFileName(artist), false).commit();
                 ArtistSignatureUtil.getInstance(App.getInstance()).updateArtistSignature(artist.getName());
-                App.getInstance().getContentResolver().notifyChange(Uri.parse("content://media"), null); // trigger media store changed to force artist image reload
+                App.getInstance().getContentResolver().notifyChange(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, null); // trigger media store changed to force artist image reload
 
                 File file = getFile(artist);
                 if (!file.exists()) {
@@ -122,7 +124,12 @@ public class CustomArtistImageUtil {
     }
 
     private static String getFileName(Artist artist) {
-        return String.format(Locale.US, "#%d#%s.jpeg", artist.getId(), artist.getName());
+        String artistName = artist.getName();
+        if (artistName == null)
+            artistName = "";
+        // replace everything that is not a letter or a number with _
+        artistName = artistName.replaceAll("[^a-zA-Z0-9]", "_");
+        return String.format(Locale.US, "#%d#%s.jpeg", artist.getId(), artistName);
     }
 
     public static File getFile(Artist artist) {

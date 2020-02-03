@@ -8,8 +8,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.widget.Toast;
 
 import com.kabouzeid.gramophone.R;
@@ -57,8 +57,6 @@ public class PlaylistsUtil {
                             EXTERNAL_CONTENT_URI,
                             values);
                     if (uri != null) {
-                        // Necessary because somehow the MediaStoreObserver is not notified when adding a playlist
-                        context.getContentResolver().notifyChange(Uri.parse("content://media"), null);
                         Toast.makeText(context, context.getResources().getString(
                                 R.string.created_playlist_x, name), Toast.LENGTH_SHORT).show();
                         id = Integer.parseInt(uri.getLastPathSegment());
@@ -82,7 +80,7 @@ public class PlaylistsUtil {
         return id;
     }
 
-    public static void deletePlaylists(@NonNull final Context context, @NonNull final ArrayList<Playlist> playlists) {
+    public static void deletePlaylists(@NonNull final Context context, @NonNull final List<Playlist> playlists) {
         final StringBuilder selection = new StringBuilder();
         selection.append(MediaStore.Audio.Playlists._ID + " IN (");
         for (int i = 0; i < playlists.size(); i++) {
@@ -94,7 +92,6 @@ public class PlaylistsUtil {
         selection.append(")");
         try {
             context.getContentResolver().delete(EXTERNAL_CONTENT_URI, selection.toString(), null);
-            context.getContentResolver().notifyChange(Uri.parse("content://media"), null);
         } catch (SecurityException ignored) {
         }
     }
@@ -218,7 +215,6 @@ public class PlaylistsUtil {
                     contentValues,
                     MediaStore.Audio.Playlists._ID + "=?",
                     new String[]{String.valueOf(id)});
-            context.getContentResolver().notifyChange(Uri.parse("content://media"), null);
         } catch (SecurityException ignored) {
         }
     }
